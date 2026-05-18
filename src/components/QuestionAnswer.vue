@@ -140,14 +140,7 @@
 
     <div class="chat-area">
       <div class="messages" ref="messagesWrapper">
-        <div v-if="isConversationOpening" class="welcome-message history-opening">
-          <h3>
-            <el-icon><Loading /></el-icon>
-            正在打开历史对话
-          </h3>
-          <p>稍等一下，正在读取当前账号下的消息记录。</p>
-        </div>
-        <div v-else-if="currentMessages.length === 0" class="welcome-message">
+        <div v-if="!isConversationOpening && currentMessages.length === 0" class="welcome-message">
           <h3>
             <el-icon v-if="mode === 'academic'"><UserFilled /></el-icon>
             <el-icon v-else><ChatDotSquare /></el-icon>
@@ -259,6 +252,7 @@ import aiAvatarUrl from '@/assets/icon/ai-avatar.png'
 import {
   chatWithLlm,
   aichatWithLlm,
+  aichatWithLlmStream,
   toGatewayAiUrl,
   downloadAiExport,
   listAiConversations,
@@ -302,6 +296,9 @@ const currentConversations = computed(() => conversations[mode.value])
 const currentSessionId = computed(() => (mode.value === 'academic' ? academicSessionId.value : generalSessionId.value))
 const currentConversationTotal = computed(() => conversationTotals[mode.value] || 0)
 const hasMoreConversations = computed(() => currentConversations.value.length < currentConversationTotal.value)
+const STREAM_RENDER_INTERVAL_MS = 35
+const STREAM_MIN_CHARS_PER_TICK = 2
+const STREAM_MAX_CHARS_PER_TICK = 48
 const isLoading = ref(false)
 const conversationLoading = ref(false)
 const conversationLoadingMore = ref(false)
@@ -317,6 +314,7 @@ const graphData = ref(null)
 const csvLink = ref('')
 const isDownloadingCsv = ref(false)
 const expiredCsvExportIds = reactive(new Set())
+let streamScrollTimer = null
 
 const resultLabel = computed(() => {
   const type = graphData.value?.entityType
@@ -472,6 +470,24 @@ const mergeConversations = (targetMode, items = []) => {
   })
 }
 
+const isReusableEmptyConversation = (conversation) => {
+  if (!conversation) return false
+  const title = (conversation.title || '').trim()
+  return Number(conversation.messageCount || 0) === 0
+    && !conversation.lastMessageAt
+    && (!title || title === '新对话' || title === '新会话')
+}
+
+const findReusableEmptyConversation = (targetMode) => {
+  const activeId = sessionIdForMode(targetMode)
+  const list = conversations[targetMode]
+  const activeConversation = list.find((item) => item.id === activeId)
+  if (isReusableEmptyConversation(activeConversation)) {
+    return activeConversation
+  }
+  return list.find(isReusableEmptyConversation)
+}
+
 const loadConversations = async (targetMode = mode.value, selectLatest = false, append = false) => {
   if (append && (conversationLoadingMore.value || !hasMoreConversations.value)) return
   if (append) {
@@ -525,6 +541,13 @@ const loadMoreConversations = () => {
 const startNewConversation = async (targetMode = mode.value) => {
   if (isLoading.value) return
   cancelRenameConversation()
+  if (!chatHistory[targetMode].length) {
+    const reusableConversation = findReusableEmptyConversation(targetMode)
+    if (reusableConversation) {
+      await selectConversation(reusableConversation, targetMode)
+      return
+    }
+  }
   try {
     const response = await createAiConversation({
       mode: targetMode,
@@ -633,6 +656,14 @@ const scrollMessagesToBottom = () => {
       messagesWrapper.value.scrollTop = messagesWrapper.value.scrollHeight
     }
   })
+}
+
+const scheduleMessagesScrollToBottom = () => {
+  if (streamScrollTimer) return
+  streamScrollTimer = window.setTimeout(() => {
+    streamScrollTimer = null
+    scrollMessagesToBottom()
+  }, 50)
 }
 
 const quickQuestions = computed(() => {
@@ -910,6 +941,102 @@ const applyGraphFromResponse = (data) => {
   renderGraph()
 }
 
+const findMessageIndex = (history, message) => {
+  if (!message) return -1
+  return history.findIndex((item) => item === message || (message.streamId && item.streamId === message.streamId))
+}
+
+const updateStreamingPlaceholder = (history, placeholder, text) => {
+  const idx = findMessageIndex(history, placeholder)
+  if (idx === -1) return
+  history[idx].text = text
+  history[idx].time = formatTime()
+}
+
+const createStreamingPlaceholderUpdater = (history, placeholder) => {
+  let sourceText = ''
+  let visibleText = ''
+  let renderTimer = null
+
+  const stop = () => {
+    if (renderTimer) {
+      window.clearInterval(renderTimer)
+      renderTimer = null
+    }
+  }
+
+  const renderStep = () => {
+    const remaining = sourceText.length - visibleText.length
+    if (remaining <= 0) {
+      stop()
+      return
+    }
+    const step = Math.min(
+      STREAM_MAX_CHARS_PER_TICK,
+      Math.max(STREAM_MIN_CHARS_PER_TICK, Math.ceil(remaining / 6))
+    )
+    visibleText = sourceText.slice(0, visibleText.length + step)
+    updateStreamingPlaceholder(history, placeholder, visibleText)
+    scheduleMessagesScrollToBottom()
+  }
+
+  const start = () => {
+    if (!renderTimer) {
+      renderTimer = window.setInterval(renderStep, STREAM_RENDER_INTERVAL_MS)
+    }
+  }
+
+  return {
+    append(chunk = '') {
+      sourceText += chunk
+      start()
+    },
+    flush() {
+      stop()
+      visibleText = sourceText
+      updateStreamingPlaceholder(history, placeholder, visibleText)
+      scrollMessagesToBottom()
+      return sourceText
+    },
+    getText() {
+      return sourceText
+    },
+    stop
+  }
+}
+
+const updateAcademicPlaceholder = (history, placeholder, data = {}, fallbackReply = '') => {
+  const { finalText, thinking } = parseReply(data?.reply || fallbackReply)
+  const idx = findMessageIndex(history, placeholder)
+  if (idx !== -1) {
+    history.splice(idx, 1, {
+      ...placeholder,
+      text: finalText,
+      thinking,
+      showThinking: false,
+      csvExportId: exportIdFromUrl(data?.csvDownloadUrl),
+      time: formatTime(),
+      pending: false
+    })
+  }
+}
+
+const shouldFallbackToAcademicJson = (error) => {
+  if (error?.streamEvent) return false
+  if (error?.code === 'STREAM_UNSUPPORTED') return true
+  return [404, 405, 501].includes(Number(error?.status || 0))
+}
+
+const requestAcademicJsonAnswer = async (payload, history, placeholder) => {
+  const response = await aichatWithLlm(payload)
+  if (response.code !== 200 || !response.data) {
+    throw new Error(t('model.generalModeErrorFallback'))
+  }
+  updateAcademicPlaceholder(history, placeholder, response.data)
+  applyGraphFromResponse(response.data)
+  loadConversations('academic')
+}
+
 const filenameFromDisposition = (disposition = '') => {
   const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i)
   if (utf8Match?.[1]) {
@@ -975,6 +1102,10 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  if (streamScrollTimer) {
+    window.clearTimeout(streamScrollTimer)
+    streamScrollTimer = null
+  }
   clearGraph()
 })
 
@@ -1051,6 +1182,7 @@ const sendMessage = async () => {
     clearGraph()
     const payload = buildAcademicPayload()
     const placeholder = {
+      streamId: `academic-stream-${Date.now()}`,
       type: 'bot',
       text: t('model.generating'),
       time: currentTime,
@@ -1061,27 +1193,32 @@ const sendMessage = async () => {
     history.push(placeholder)
     scrollMessagesToBottom()
 
+    let streamedReply = ''
+    const streamUpdater = createStreamingPlaceholderUpdater(history, placeholder)
     try {
-      const response = await aichatWithLlm(payload)
-      if (response.code !== 200 || !response.data) {
-        throw new Error(t('model.generalModeErrorFallback'))
-      }
-      const { finalText, thinking } = parseReply(response.data.reply)
-      const idx = history.indexOf(placeholder)
-      if (idx !== -1) {
-        history.splice(idx, 1, {
-          ...placeholder,
-          text: finalText,
-          thinking,
-          showThinking: false,
-          csvExportId: exportIdFromUrl(response.data.csvDownloadUrl),
-          time: formatTime(),
-          pending: false
-        })
-      }
-      applyGraphFromResponse(response.data)
+      const responseData = await aichatWithLlmStream(payload, {
+        onDelta: ({ text: chunk = '' } = {}) => {
+          if (!chunk) return
+          streamUpdater.append(chunk)
+          streamedReply = streamUpdater.getText()
+        }
+      })
+      streamedReply = streamUpdater.flush()
+      const finalData = responseData || { reply: streamedReply }
+      updateAcademicPlaceholder(history, placeholder, finalData, streamedReply)
+      applyGraphFromResponse(finalData)
       loadConversations('academic')
     } catch (error) {
+      streamedReply = streamUpdater.getText()
+      streamUpdater.stop()
+      if (!streamedReply && shouldFallbackToAcademicJson(error)) {
+        try {
+          await requestAcademicJsonAnswer(payload, history, placeholder)
+          return
+        } catch (fallbackError) {
+          error = fallbackError
+        }
+      }
       const message = extractErrorMessage(error)
       const index = history.indexOf(placeholder)
       if (index !== -1) {
@@ -1097,6 +1234,7 @@ const sendMessage = async () => {
       ElMessage.error(message)
       clearGraph()
     } finally {
+      streamUpdater.stop()
       isLoading.value = false
       scrollMessagesToBottom()
     }
