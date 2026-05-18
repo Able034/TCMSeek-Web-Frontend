@@ -1,5 +1,9 @@
 # TCMSeek Web Frontend
 
+## 演示地址
+
+演示链接：[http://120.79.220.11/#/](http://120.79.220.11/#/)
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 TCMSeek Web Frontend 是 TCMSeek 平台的 Vue 3 前端应用。项目面向中医药知识图谱与大模型问答场景，提供知识检索、图谱可视化、智能问答、分子结构搜索、富集分析、PPI Hub 蛋白分析、X2K Analysis 和靶点预测等功能。

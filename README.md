@@ -4,6 +4,10 @@
 
 TCMSeek Web Frontend is the Vue 3 front-end application for the TCMSeek platform, a Traditional Chinese Medicine knowledge graph and large language model web system. It provides knowledge search, graph visualization, intelligent Q&A, molecular structure search, enrichment analysis, PPI hub protein analysis, X2K analysis, and target prediction workflows.
 
+## Demo
+
+Demo link: [http://120.79.220.11/#/](http://120.79.220.11/#/)
+
 ## Related Repositories
 
 - Frontend: [TCMSeek-Web-Frontend](https://github.com/Able034/TCMSeek-Web-Frontend)
