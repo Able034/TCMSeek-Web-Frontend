@@ -20,16 +20,17 @@ TCMSeek Web Frontend 是 TCMSeek 平台的 Vue 3 前端应用。项目面向中�
 
 ## 技术栈
 
-- Vue 3
-- Vite
-- Vue Router
-- Vue I18n
-- Element Plus
-- Axios
-- ECharts
-- D3
-- Sigma.js / Graphology
-- ChemDoodle Web Components
+![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vuedotjs&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
+![Element Plus](https://img.shields.io/badge/Element%20Plus-UI-409EFF?logo=element&logoColor=white)
+![Vue Router](https://img.shields.io/badge/Vue%20Router-4-42b883?logo=vuedotjs&logoColor=white)
+![Vue I18n](https://img.shields.io/badge/Vue%20I18n-9-42b883?logo=vuedotjs&logoColor=white)
+![Axios](https://img.shields.io/badge/Axios-HTTP-5A29E4?logo=axios&logoColor=white)
+![ECharts](https://img.shields.io/badge/ECharts-5-AA344D)
+![D3.js](https://img.shields.io/badge/D3.js-7-F9A03C?logo=d3dotjs&logoColor=white)
+![Sigma.js](https://img.shields.io/badge/Sigma.js-Graph-2D74DA)
+![Graphology](https://img.shields.io/badge/Graphology-Network-222222)
+![ChemDoodle](https://img.shields.io/badge/ChemDoodle-Web%20Components-0B7285)
 
 ## 快速开始
 
@@ -97,13 +98,3 @@ Frontend/
 | 变量 | 是否必填 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | `VITE_GATEWAY_TARGET` | 否 | `http://localhost:8090` | Vite 开发代理使用的后端网关地址 |
-
-## 仓库整理说明
-
-此仓库只应提交前端源码和基础项目配置。`.gitignore` 已忽略依赖目录、构建产物、本地日志、环境变量文件、SQL 文件、额外 Markdown 文档、Office 文档、PDF、CSV/TSV 导出文件和压缩包。
-
-公开发布前，请确认 Git 跟踪历史中没有私有数据、账号密钥、数据库导出、生成报告或其他敏感文件。
-
-## 许可证
-
-当前目录暂未包含许可证文件。如需公开开源分发，请先补充 `LICENSE` 文件。

@@ -20,16 +20,17 @@ TCMSeek Web Frontend is the Vue 3 front-end application for the TCMSeek platform
 
 ## Tech Stack
 
-- Vue 3
-- Vite
-- Vue Router
-- Vue I18n
-- Element Plus
-- Axios
-- ECharts
-- D3
-- Sigma.js / Graphology
-- ChemDoodle Web Components
+![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vuedotjs&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
+![Element Plus](https://img.shields.io/badge/Element%20Plus-UI-409EFF?logo=element&logoColor=white)
+![Vue Router](https://img.shields.io/badge/Vue%20Router-4-42b883?logo=vuedotjs&logoColor=white)
+![Vue I18n](https://img.shields.io/badge/Vue%20I18n-9-42b883?logo=vuedotjs&logoColor=white)
+![Axios](https://img.shields.io/badge/Axios-HTTP-5A29E4?logo=axios&logoColor=white)
+![ECharts](https://img.shields.io/badge/ECharts-5-AA344D)
+![D3.js](https://img.shields.io/badge/D3.js-7-F9A03C?logo=d3dotjs&logoColor=white)
+![Sigma.js](https://img.shields.io/badge/Sigma.js-Graph-2D74DA)
+![Graphology](https://img.shields.io/badge/Graphology-Network-222222)
+![ChemDoodle](https://img.shields.io/badge/ChemDoodle-Web%20Components-0B7285)
 
 ## Getting Started
 
@@ -97,13 +98,3 @@ The application calls backend APIs through `/api/web`. In development, Vite prox
 | Variable | Required | Default | Description |
 | --- | --- | --- | --- |
 | `VITE_GATEWAY_TARGET` | No | `http://localhost:8090` | Backend gateway used by the Vite dev proxy |
-
-## Repository Hygiene
-
-This repository should contain only front-end source code and basic project configuration. The `.gitignore` excludes dependencies, build output, local logs, environment files, SQL files, extra Markdown documents, Office documents, PDFs, CSV/TSV exports, and compressed packages.
-
-Before publishing this repository publicly, make sure no private data, credentials, database dumps, generated reports, or sensitive files exist in the tracked history.
-
-## License
-
-No license file is included yet. Add a `LICENSE` file before public distribution if the project needs an explicit open-source license.
