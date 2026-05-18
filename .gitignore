@@ -1,0 +1,87 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.*
+
+# Build output
+dist/
+dist-ssr/
+build/
+coverage/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+.codex/
+.codex-*.log
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+.npmrc
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# Editors and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Project documents and database files
+*.md
+!/README.md
+!/README.zh-CN.md
+docs/
+sql/
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+
+# Office documents and exported reports
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.xls
+*.xlsx
+*.pdf
+*.csv
+*.tsv
+
+# Local source assets
+*-source.png
+*-source.jpg
+*-source.jpeg
+
+# Archives and packaged artifacts
+*.zip
+*.rar
+*.7z
+*.tar
+*.tgz
+*.tar.gz
+*.gz
+
+# Deployment-only local files
+docker/

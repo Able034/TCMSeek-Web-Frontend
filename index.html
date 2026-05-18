@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCMSeek - 中医药大模型知识图谱平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- ChemDoodle Web Components CSS -->
+    <link rel="stylesheet" href="/chemdoodle/ChemDoodleWeb.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    
+    <!-- ChemDoodle Web Components JS (Base library) -->
+    <script src="/chemdoodle/ChemDoodleWeb.js"></script>
+    
+    <!-- ChemDoodle Web UIs (Sketcher and other UI components) -->
+    <script src="/chemdoodle/ChemDoodleWeb-uis.js"></script>
+    
+    <!-- Disable ChemDoodle cloud services -->
+    <script>
+      if (typeof ChemDoodle !== 'undefined') {
+        console.log('✅ ChemDoodle loaded');
+        console.log('📦 ChemDoodle version:', ChemDoodle.getVersion ? ChemDoodle.getVersion() : 'unknown');
+        console.log('🎨 Has SketcherCanvas:', !!ChemDoodle.SketcherCanvas);
+        
+        // 禁用自动更新检查和云服务
+        if (ChemDoodle.iChemLabs) {
+          ChemDoodle.iChemLabs.checkForUpdates = function() {
+            console.log('ChemDoodle update check disabled');
+          };
+          ChemDoodle.iChemLabs._contactServer = function() {
+            console.log('ChemDoodle server contact disabled');
+          };
+        }
+      }
+    </script>
+    
+    <!-- Vue App -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+
+
